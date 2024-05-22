@@ -1,5 +1,5 @@
 from django.contrib.auth.base_user import AbstractBaseUser
-from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.contrib.auth.models import AbstractUser, BaseUserManager, PermissionsMixin
 from django.db import models
 from django.core.validators import MaxValueValidator
 from django.core.validators import FileExtensionValidator
@@ -27,12 +27,13 @@ class CustomUserManager(BaseUserManager):
         return self.create_user(email, password, **extra_fields)
 
 
-class CustomUser(AbstractBaseUser):
+class CustomUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
     birth_date = models.DateField(null=True)
     city = models.CharField(max_length=150)
+    phone_number = models.IntegerField()
     is_vip = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
@@ -46,7 +47,7 @@ class CustomUser(AbstractBaseUser):
     )
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name', 'last_name', 'city', 'birth_date']
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'city', 'birth_date', 'phone_number']
 
     objects = CustomUserManager()
 
@@ -76,6 +77,7 @@ class Apartment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    about = models.OneToOneField('About', on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -83,7 +85,6 @@ class Apartment(models.Model):
 
 
 class About(models.Model):
-    apartment = models.OneToOneField(Apartment, on_delete=models.CASCADE)
     status = models.CharField(max_length=255)
     balcony = models.CharField(max_length=255)
     phone_status = models.CharField(max_length=255)

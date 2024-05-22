@@ -9,12 +9,12 @@ class AboutSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+
+
 class ApartmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Apartment
         fields = '__all__'
 
-    def create(self, validated_data):
-        return Apartment.objects.create(**validated_data)
 
 

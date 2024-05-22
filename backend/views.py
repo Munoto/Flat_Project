@@ -1,11 +1,13 @@
-from rest_framework.generics import RetrieveAPIView
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.generics import RetrieveAPIView, CreateAPIView, DestroyAPIView, UpdateAPIView, ListAPIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from backend.models import Apartment, About
 from backend.serializers import ApartmentSerializer, AboutSerializer
 
 
-# Возвращает один обьект
+# Возвращает один обьект (Apartment и About)
 class ApartmentRetrieveAPIView(RetrieveAPIView):
     queryset = Apartment.objects.all()
     serializer_class = ApartmentSerializer
@@ -20,10 +22,31 @@ class ApartmentRetrieveAPIView(RetrieveAPIView):
         return Response(data)
 
 
-# Возвращает все обьекты
-class ApartmentAPIView(APIView):
-    def get(self, request):
-        lst = Apartment.objects.all().values()
-        return Response({'lists': list(lst)})
+# Возвращает все обьекты (для главной страницы)
+class ApartmentListAPIView(ListAPIView):
+    queryset = Apartment.objects.all()
+    serializer_class = ApartmentSerializer
 
 
+# Создание обьекта Apartment
+class ApartmentCreateAPIView(CreateAPIView):
+    queryset = Apartment.objects.all()
+    serializer_class = ApartmentSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+# Удаление обьекта Apartment
+class ApartmentDeleteAPIView(DestroyAPIView):
+    queryset = Apartment.objects.all()
+    lookup_field = 'id'
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+
+# Обновление обьекта Apartment
+class ApartmentUpdateAPIView(UpdateAPIView):
+    queryset = Apartment.objects.all()
+    serializer_class = ApartmentSerializer
+    lookup_field = 'id'
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
