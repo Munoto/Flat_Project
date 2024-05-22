@@ -1,7 +1,6 @@
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.generics import RetrieveAPIView, CreateAPIView, DestroyAPIView, UpdateAPIView, ListAPIView
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.views import APIView
 from rest_framework.response import Response
 from backend.models import Apartment, About
 from backend.serializers import ApartmentSerializer, AboutSerializer
