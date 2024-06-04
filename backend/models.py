@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager, Permission
 from django.db import models
 from django.core.validators import MaxValueValidator
 from django.core.validators import FileExtensionValidator
+import os
 
 
 class CustomUserManager(BaseUserManager):
@@ -33,17 +34,18 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(max_length=30)
     birth_date = models.DateField(null=True)
     city = models.CharField(max_length=150)
-    phone_number = models.IntegerField()
+    phone_number = models.CharField(max_length=30)
+    profile_image = models.ImageField(upload_to='profile_images/', null=True, blank=True)
     is_vip = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     avatar = models.ImageField(
-        upload_to='',
+        upload_to='avatars/',
         blank = True,
         null = True,
-        validators=[FileExtensionValidator(allowed_extensions=['jpg'])]
+        validators=[FileExtensionValidator(allowed_extensions=['jpg', 'png'])]
     )
 
     USERNAME_FIELD = 'email'
@@ -55,42 +57,50 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         return self.first_name
 
 
-
-class Image(models.Model):
-    image = models.ImageField(upload_to='images/')
+def apartment_image_upload_path(instance, filename):
+    return f'images/apartments/{instance.apartment.name}/{filename}'
 
 
 class Apartment(models.Model):
+    type = models.CharField(max_length=100)
+    rent_type = models.CharField(max_length=100, null=True)
     name = models.CharField(max_length=100)
     price = models.IntegerField()
     description = models.TextField()
     count_of_rooms = models.CharField(max_length=255)
-    location = models.CharField(max_length=100)
+    region = models.CharField(max_length=100)
+    street = models.CharField(max_length=100)
+    house_number = models.CharField(max_length=100)
+    longitude = models.IntegerField(null=True)
+    latitude = models.IntegerField(null=True)
     year_of_construction = models.IntegerField(validators=[MaxValueValidator(2024)])
     max_floor = models.IntegerField(validators=[MaxValueValidator(38)])
     floor = models.IntegerField(validators=[MaxValueValidator(38)])
     height = models.IntegerField()
     apartment_area = models.IntegerField()
     kitchen_area = models.IntegerField()
-    image = models.ForeignKey(Image, on_delete=models.CASCADE, null=True, blank=True)
-    bathroom = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    about = models.OneToOneField('About', on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
         return self.name
 
 
+class Image(models.Model):
+    apartment = models.ForeignKey(Apartment, related_name='images', on_delete=models.CASCADE)
+    image = models.ImageField(upload_to=apartment_image_upload_path)
+
+    def __str__(self):
+        return f"Image for {self.apartment.name}"
+
 
 class About(models.Model):
+    apartment = models.OneToOneField(Apartment, on_delete=models.CASCADE, related_name='about', null=True)
     status = models.CharField(max_length=255)
     balcony = models.CharField(max_length=255)
-    phone_status = models.CharField(max_length=255)
     internet = models.CharField(max_length=255)
     bathroom = models.CharField(max_length=255)
-    door = models.CharField(max_length=255)
     parking = models.CharField(max_length=255)
     furnished_type = models.CharField(max_length=255)
     floor = models.CharField(max_length=255)
