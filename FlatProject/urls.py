@@ -2,10 +2,13 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, re_path, include
+from rest_framework.routers import DefaultRouter
 
 from backend.views import ApartmentListAPIView, ApartmentRetrieveAPIView, ApartmentCreateAPIView, \
     ApartmentDeleteAPIView, ApartmentUpdateAPIView, UserApartmentListAPIView, AboutCreateAPIView, AboutUpdateAPIView, \
-    AboutDeleteAPIView, CustomUserUpdateAPIView, CustomUserDetailView, VerifyIdentityView
+    AboutDeleteAPIView, CustomUserUpdateAPIView, CustomUserDetailView, VerifyIdentityView, ApartmentViewSet
+
+
 
 urlpatterns = [
     path('admin/', admin.site.urls), # Админская панель

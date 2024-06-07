@@ -1,3 +1,4 @@
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import RetrieveAPIView, CreateAPIView, DestroyAPIView, UpdateAPIView, ListAPIView, \
@@ -5,9 +6,10 @@ from rest_framework.generics import RetrieveAPIView, CreateAPIView, DestroyAPIVi
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound, PermissionDenied
-from rest_framework import pagination, status
+from rest_framework import pagination, status, viewsets
 from rest_framework.views import APIView
 
+from backend.filters import ApartmentFilter
 from backend.models import Apartment, About, CustomUser
 from backend.permissions import IsOwnerOrReadOnly
 from backend.serializers import ApartmentSerializer, AboutSerializer, CustomUserSerializer, ProfileImageSerializer
@@ -56,13 +58,14 @@ class ApartmentRetrieveAPIView(RetrieveAPIView):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
 
+        user_instance = CustomUser.objects.get(apartment=instance)
+        user_serializer = CustomUserSerializer(user_instance)
+        user_data = user_serializer.data
+
         try:
-            user_instance = CustomUser.objects.get(apartment=instance)
             about_instance = About.objects.get(apartment=instance)
             about_serializer = AboutSerializer(about_instance)
-            user_serializer = CustomUserSerializer(user_instance)
             about_data = about_serializer.data
-            user_data = user_serializer.data
         except About.DoesNotExist:
             about_data = None
 
@@ -82,6 +85,8 @@ class ApartmentListAPIView(ListAPIView):
     queryset = Apartment.objects.all()
     serializer_class = ApartmentSerializer
     pagination_class = PagePagination
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = ApartmentFilter
 
 
 # Создание обьекта Apartment
@@ -196,3 +201,10 @@ class VerifyIdentityView(APIView):
             user.save()
             return Response({'status': 'verified'}, status=status.HTTP_200_OK)
         return Response({'status': 'failed'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ApartmentViewSet(viewsets.ModelViewSet):
+    queryset = Apartment.objects.all()
+    serializer_class = ApartmentSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = ApartmentFilter
